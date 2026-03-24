@@ -1,4 +1,5 @@
 import type { Poliza } from '../types';
+import { exportarPolizaPDF } from '../pdf/reportesPdf';
 
 interface Props {
   polizas: Poliza[];
@@ -43,6 +44,7 @@ const TablaPolizas = ({ polizas }: Props) => {
                 <th>Cuota Mensual</th>
                 <th>Riesgo</th>
                 <th>Promo</th>
+                <th>Reporte</th>
               </tr>
             </thead>
             <tbody>
@@ -73,6 +75,15 @@ const TablaPolizas = ({ polizas }: Props) => {
                     ) : (
                       <span className="badge bg-secondary">No</span>
                     )}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => exportarPolizaPDF(poliza)}
+                    >
+                      PDF
+                    </button>
                   </td>
                 </tr>
               ))}

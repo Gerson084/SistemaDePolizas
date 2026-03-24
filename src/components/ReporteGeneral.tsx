@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Poliza } from '../types';
+import { exportarReporteGeneralPDF } from '../pdf/reportesPdf';
 
 interface Props {
   polizas: Poliza[];
@@ -102,10 +103,23 @@ const ReporteGeneral = ({ polizas }: Props) => {
     }
   };
 
+  const descargarReporteGeneral = () => {
+    exportarReporteGeneralPDF(estadisticas, polizas.length);
+  };
+
   return (
     <div className="card mb-4">
       <div className="card-header bg-info text-white">
-        <h4 className="mb-0">Reporte General - Estadísticas</h4>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+          <h4 className="mb-0">Reporte General - Estadísticas</h4>
+          <button
+            type="button"
+            className="btn btn-light btn-sm fw-semibold"
+            onClick={descargarReporteGeneral}
+          >
+            Descargar PDF
+          </button>
+        </div>
       </div>
       <div className="card-body">
         <div className="row g-3">
