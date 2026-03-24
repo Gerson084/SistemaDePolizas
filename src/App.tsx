@@ -21,14 +21,14 @@ function App() {
   };
 
   return (
-    <div className="container-fluid py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      <div className="container">
-        <div className="text-center mb-4">
-          <h1 className="display-4 fw-bold text-primary">Sistema de Cálculo de Pólizas de Seguro de Auto</h1>
-          <p className="lead text-muted">Calcule el costo anual de su seguro de vehículo</p>
+    <div className="app-shell py-4">
+      <div className="container app-container">
+        <div className="app-hero text-center mb-4">
+          <h1 className="app-title">Sistema de Cálculo de Pólizas de Seguro de Auto</h1>
+          <p className="app-subtitle">Calcula el costo anual de tu seguro de vehículo con un resumen completo</p>
           {polizas.length > 0 && (
             <button 
-              className="btn btn-danger btn-lg mt-3"
+              className="btn btn-neutral-danger btn-lg mt-3"
               onClick={reiniciarSistema}
             >
               Reiniciar Sistema

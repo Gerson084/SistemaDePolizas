@@ -77,11 +77,11 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
   };
 
   return (
-    <div className="card mb-4">
-      <div className="card-header bg-primary text-white">
-        <h4 className="mb-0">Cálculo de Póliza de Seguro</h4>
+    <div className="card panel mb-4">
+      <div className="card-header panel-header">
+        <h4 className="mb-0 panel-title">Cálculo de Póliza de Seguro</h4>
       </div>
-      <div className="card-body">
+      <div className="card-body panel-body">
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-6 mb-3">
@@ -197,13 +197,13 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-lg w-100">
+          <button type="submit" className="btn btn-neutral btn-lg w-100">
             Calcular Póliza
           </button>
         </form>
 
         {errores.length > 0 && (
-          <div className="alert alert-danger mt-3" role="alert">
+          <div className="alert alert-soft-danger mt-3" role="alert">
             <h5>Errores de validación:</h5>
             <ul className="mb-0">
               {errores.map((error, index) => (
@@ -215,8 +215,8 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
 
         {ultimaPoliza && (
           <div className="mt-4">
-            <div className="card border-success">
-              <div className="card-header bg-success text-white">
+            <div className="card result-card">
+              <div className="card-header result-header">
                 <h5 className="mb-0">Resultado del Cálculo</h5>
               </div>
               <div className="card-body">
@@ -227,13 +227,13 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
                     <p><strong>Total Recargos:</strong> ${ultimaPoliza.recargos.toFixed(2)}</p>
                     <p><strong>Total Descuentos:</strong> ${ultimaPoliza.descuentos.toFixed(2)}</p>
                     {ultimaPoliza.promoAplicada && (
-                      <div className="alert alert-info py-2">
+                      <div className="alert promo-alert py-2">
                         ¡Promoción especial aplicada! (-12%)
                       </div>
                     )}
                   </div>
                   <div className="col-md-6">
-                    <p><strong>Prima Anual:</strong> <span className="fs-4 text-primary">${ultimaPoliza.primaAnual.toFixed(2)}</span></p>
+                    <p><strong>Prima Anual:</strong> <span className="fs-4 amount-highlight">${ultimaPoliza.primaAnual.toFixed(2)}</span></p>
                     <p><strong>Cuota Mensual:</strong> ${ultimaPoliza.cuotaMensual.toFixed(2)}</p>
                     <p>
                       <strong>Clasificación de Riesgo:</strong>{' '}

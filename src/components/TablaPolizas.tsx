@@ -21,14 +21,14 @@ const TablaPolizas = ({ polizas }: Props) => {
   }
 
   return (
-    <div className="card mb-4">
-      <div className="card-header bg-secondary text-white">
-        <h4 className="mb-0">Pólizas Registradas</h4>
+    <div className="card panel mb-4">
+      <div className="card-header panel-header">
+        <h4 className="mb-0 panel-title">Pólizas Registradas</h4>
       </div>
-      <div className="card-body">
+      <div className="card-body panel-body">
         <div className="table-responsive">
-          <table className="table table-striped table-hover">
-            <thead className="table-dark">
+          <table className="table table-modern table-hover align-middle">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>Cliente</th>
@@ -56,13 +56,13 @@ const TablaPolizas = ({ polizas }: Props) => {
                   <td>{poliza.tipoVehiculo}</td>
                   <td>{poliza.anioVehiculo}</td>
                   <td>${poliza.valorVehiculo.toLocaleString()}</td>
-                  <td className={poliza.accidentes === 0 ? 'text-success fw-bold' : 'text-danger'}>
+                  <td className="fw-semibold">
                     {poliza.accidentes}
                   </td>
                   <td>${poliza.primaBase.toFixed(2)}</td>
-                  <td className="text-danger">${poliza.recargos.toFixed(2)}</td>
-                  <td className="text-success">${poliza.descuentos.toFixed(2)}</td>
-                  <td className="fw-bold">${poliza.primaAnual.toFixed(2)}</td>
+                  <td>${poliza.recargos.toFixed(2)}</td>
+                  <td>${poliza.descuentos.toFixed(2)}</td>
+                  <td className="fw-bold amount-highlight">${poliza.primaAnual.toFixed(2)}</td>
                   <td>${poliza.cuotaMensual.toFixed(2)}</td>
                   <td>
                     <span className={`badge bg-${obtenerColorRiesgo(poliza.clasificacionRiesgo)}`}>
@@ -71,15 +71,15 @@ const TablaPolizas = ({ polizas }: Props) => {
                   </td>
                   <td>
                     {poliza.promoAplicada ? (
-                      <span className="badge bg-info">Sí</span>
+                      <span className="badge badge-neutral">Sí</span>
                     ) : (
-                      <span className="badge bg-secondary">No</span>
+                      <span className="badge badge-neutral">No</span>
                     )}
                   </td>
                   <td>
                     <button
                       type="button"
-                      className="btn btn-outline-primary btn-sm"
+                      className="btn btn-outline-neutral btn-sm"
                       onClick={() => exportarPolizaPDF(poliza)}
                     >
                       PDF
