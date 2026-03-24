@@ -12,22 +12,19 @@ interface EstadisticasReporte {
   clientesRiesgoAltoOCritico: number;
 }
 
-const crearCabecera = (doc: jsPDF, titulo: string, subtitulo: string) => {
-  doc.setFillColor(21, 101, 192);
-  doc.rect(0, 0, 210, 30, 'F');
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('Sistema de Polizas de Auto', 14, 12);
-
-  doc.setFontSize(13);
-  doc.text(titulo, 14, 20);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(subtitulo, 14, 26);
+type DocConTabla = jsPDF & {
+  lastAutoTable?: { finalY?: number };
 };
+
+const COLOR = {
+  slate900: [15, 23, 42] as [number, number, number],
+  slate700: [51, 65, 85] as [number, number, number],
+  slate500: [100, 116, 139] as [number, number, number],
+  slate200: [226, 232, 240] as [number, number, number],
+  slate100: [241, 245, 249] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  emerald: [16, 185, 129] as [number, number, number],
+} as const;
 
 const formatoMoneda = (valor: number): string =>
   new Intl.NumberFormat('es-MX', {
@@ -39,173 +36,294 @@ const formatoMoneda = (valor: number): string =>
 const obtenerColorRiesgoRGB = (clasificacion: string): [number, number, number] => {
   switch (clasificacion) {
     case 'Bajo':
-      return [46, 125, 50];
+      return [22, 163, 74];
     case 'Medio':
-      return [21, 101, 192];
+      return [37, 99, 235];
     case 'Alto':
-      return [245, 124, 0];
+      return [217, 119, 6];
     case 'Crítico':
-      return [198, 40, 40];
+      return [220, 38, 38];
     default:
-      return [97, 97, 97];
+      return [107, 114, 128];
   }
+};
+
+const safeFileName = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .toLowerCase();
+
+const getFinalY = (doc: DocConTabla, fallback: number) => doc.lastAutoTable?.finalY ?? fallback;
+
+const dibujarEncabezado = (doc: jsPDF, titulo: string, subtitulo: string) => {
+  doc.setFillColor(...COLOR.slate900);
+  doc.rect(0, 0, 210, 34, 'F');
+
+  doc.setFillColor(...COLOR.slate700);
+  doc.rect(0, 34, 210, 6, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(...COLOR.white);
+  doc.text('Sistema de Cálculo de Pólizas de Seguro de Auto', 14, 13);
+
+  doc.setFontSize(11);
+  doc.text(titulo, 14, 21);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(220, 230, 240);
+  doc.text(subtitulo, 14, 28);
+};
+
+const agregarPie = (doc: jsPDF) => {
+  const pages = doc.getNumberOfPages();
+  for (let page = 1; page <= pages; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(...COLOR.slate200);
+    doc.line(14, 286, 196, 286);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...COLOR.slate500);
+    doc.text('Documento generado automáticamente por el sistema', 14, 291);
+    doc.text(`Página ${page} de ${pages}`, 196, 291, { align: 'right' });
+  }
+};
+
+const dibujarKpi = (
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  titulo: string,
+  valor: string,
+  acento: [number, number, number],
+) => {
+  doc.setFillColor(...COLOR.white);
+  doc.setDrawColor(...COLOR.slate200);
+  doc.roundedRect(x, y, w, 25, 3, 3, 'FD');
+
+  doc.setFillColor(...acento);
+  doc.rect(x, y, 3, 25, 'F');
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...COLOR.slate500);
+  doc.setFontSize(8.5);
+  doc.text(titulo, x + 6, y + 8);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...COLOR.slate900);
+  doc.setFontSize(12);
+  doc.text(valor, x + 6, y + 17);
 };
 
 export const exportarPolizaPDF = (poliza: Poliza) => {
   const doc = new jsPDF();
   const fecha = new Date().toLocaleString('es-MX');
+  const docTabla = doc as DocConTabla;
 
-  crearCabecera(doc, 'Reporte Individual de Poliza', `Generado: ${fecha}`);
+  dibujarEncabezado(doc, 'Reporte individual de póliza', `Emitido: ${fecha}`);
 
-  doc.setTextColor(33, 33, 33);
+  const colorRiesgo = obtenerColorRiesgoRGB(poliza.clasificacionRiesgo);
+  doc.setFillColor(...COLOR.slate100);
+  doc.roundedRect(14, 46, 182, 16, 3, 3, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text(`Cliente: ${poliza.nombre}`, 14, 40);
+  doc.setFontSize(11.5);
+  doc.setTextColor(...COLOR.slate900);
+  doc.text(poliza.nombre, 18, 56);
 
-  const riesgoColor = obtenerColorRiesgoRGB(poliza.clasificacionRiesgo);
-  doc.setFillColor(riesgoColor[0], riesgoColor[1], riesgoColor[2]);
-  doc.roundedRect(148, 34, 48, 10, 2, 2, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text(`Riesgo: ${poliza.clasificacionRiesgo}`, 152, 40);
+  doc.setFillColor(...colorRiesgo);
+  doc.roundedRect(154, 49, 38, 9, 2, 2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...COLOR.white);
+  doc.text(poliza.clasificacionRiesgo, 173, 55.3, { align: 'center' });
+
+  dibujarKpi(doc, 14, 68, 58, 'Prima anual final', formatoMoneda(poliza.primaAnual), colorRiesgo);
+  dibujarKpi(doc, 76, 68, 58, 'Cuota mensual', formatoMoneda(poliza.cuotaMensual), COLOR.slate700);
+  dibujarKpi(doc, 138, 68, 58, 'Promoción aplicada', poliza.promoAplicada ? 'Sí' : 'No', COLOR.emerald);
 
   autoTable(doc, {
-    startY: 46,
-    head: [['Dato', 'Valor']],
+    startY: 99,
+    head: [['Datos del conductor y vehículo', 'Detalle']],
     body: [
-      ['Edad', `${poliza.edad} anios`],
-      ['Tipo de vehiculo', poliza.tipoVehiculo],
-      ['Anio del vehiculo', `${poliza.anioVehiculo}`],
-      ['Uso del vehiculo', poliza.usoVehiculo],
-      ['Zona de circulacion', poliza.zonaCirculacion],
+      ['Edad', `${poliza.edad} años`],
+      ['Tipo de vehículo', poliza.tipoVehiculo],
+      ['Año del vehículo', `${poliza.anioVehiculo}`],
+      ['Uso del vehículo', poliza.usoVehiculo],
+      ['Zona de circulación', poliza.zonaCirculacion],
+      ['Valor comercial', formatoMoneda(poliza.valorVehiculo)],
       ['Accidentes reportados', `${poliza.accidentes}`],
-      ['Promocion aplicada', poliza.promoAplicada ? 'Si' : 'No'],
     ],
+    theme: 'grid',
     styles: {
       font: 'helvetica',
-      fontSize: 10,
+      fontSize: 9.8,
       cellPadding: 3,
+      lineColor: COLOR.slate200,
+      lineWidth: 0.2,
+      textColor: COLOR.slate900,
     },
     headStyles: {
-      fillColor: [21, 101, 192],
-      textColor: [255, 255, 255],
+      fillColor: COLOR.slate700,
+      textColor: COLOR.white,
       fontStyle: 'bold',
     },
     alternateRowStyles: {
-      fillColor: [247, 249, 252],
+      fillColor: [250, 251, 253],
     },
   });
 
   autoTable(doc, {
-    startY: (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY
-      ? (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable!.finalY! + 10
-      : 120,
-    head: [['Resumen Financiero', 'Monto']],
+    startY: getFinalY(docTabla, 150) + 8,
+    head: [['Concepto financiero', 'Monto']],
     body: [
       ['Prima base', formatoMoneda(poliza.primaBase)],
-      ['Recargos', formatoMoneda(poliza.recargos)],
-      ['Descuentos', formatoMoneda(poliza.descuentos)],
+      ['Recargos acumulados', formatoMoneda(poliza.recargos)],
+      ['Descuentos aplicados', formatoMoneda(poliza.descuentos)],
       ['Prima anual final', formatoMoneda(poliza.primaAnual)],
       ['Cuota mensual', formatoMoneda(poliza.cuotaMensual)],
     ],
+    theme: 'grid',
     styles: {
       font: 'helvetica',
-      fontSize: 11,
+      fontSize: 10,
       cellPadding: 3,
+      lineColor: COLOR.slate200,
+      lineWidth: 0.2,
     },
     headStyles: {
-      fillColor: [46, 125, 50],
-      textColor: [255, 255, 255],
+      fillColor: COLOR.slate900,
+      textColor: COLOR.white,
       fontStyle: 'bold',
     },
     columnStyles: {
       1: { halign: 'right' },
     },
+    didParseCell: (hookData) => {
+      if (hookData.section === 'body' && hookData.row.index === 3) {
+        hookData.cell.styles.fillColor = [241, 245, 249];
+        hookData.cell.styles.textColor = COLOR.slate900;
+        hookData.cell.styles.fontStyle = 'bold';
+      }
+    },
     alternateRowStyles: {
-      fillColor: [245, 252, 247],
+      fillColor: [250, 251, 253],
     },
   });
 
-  const finalY =
-    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 180;
-  doc.setTextColor(90, 90, 90);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(9);
-  doc.text('Documento informativo generado automaticamente por el sistema.', 14, finalY + 12);
+  agregarPie(doc);
 
-  doc.save(`poliza-${poliza.nombre.replace(/\s+/g, '-').toLowerCase()}-${poliza.id}.pdf`);
+  doc.save(`poliza-${safeFileName(poliza.nombre)}-${poliza.id}.pdf`);
 };
 
 export const exportarReporteGeneralPDF = (
   estadisticas: EstadisticasReporte,
   totalPolizas: number,
+  polizas: Poliza[],
 ) => {
   const doc = new jsPDF();
   const fecha = new Date().toLocaleString('es-MX');
+  const docTabla = doc as DocConTabla;
 
-  crearCabecera(doc, 'Reporte General de Estadisticas', `Generado: ${fecha}`);
+  dibujarEncabezado(doc, 'Reporte general de estadísticas', `Emitido: ${fecha}`);
+
+  const porcentajeSinAccidentes =
+    totalPolizas > 0 ? ((estadisticas.conductoresSinAccidentes / totalPolizas) * 100).toFixed(1) : '0.0';
+  const porcentajeRiesgoAlto =
+    totalPolizas > 0 ? ((estadisticas.clientesRiesgoAltoOCritico / totalPolizas) * 100).toFixed(1) : '0.0';
+
+  dibujarKpi(doc, 14, 46, 88, 'Total de pólizas', `${estadisticas.totalPolizas}`, COLOR.slate700);
+  dibujarKpi(doc, 108, 46, 88, 'Promedio de primas', formatoMoneda(estadisticas.promedioPremas), [30, 64, 175]);
+  dibujarKpi(doc, 14, 75, 88, 'Sin accidentes', `${porcentajeSinAccidentes}%`, [5, 150, 105]);
+  dibujarKpi(doc, 108, 75, 88, 'Riesgo alto/crítico', `${porcentajeRiesgoAlto}%`, [217, 119, 6]);
 
   autoTable(doc, {
-    startY: 40,
-    head: [['Indicador', 'Resultado']],
+    startY: 107,
+    head: [['Indicador principal', 'Resultado']],
     body: [
-      ['Total de polizas registradas', `${estadisticas.totalPolizas}`],
+      ['Total de pólizas registradas', `${estadisticas.totalPolizas}`],
       ['Promedio de primas', formatoMoneda(estadisticas.promedioPremas)],
+      ['Tipo más asegurado', `${estadisticas.tipoMasAsegurado} (${estadisticas.maxConteoTipo})`],
       [
-        'Tipo de vehiculo mas asegurado',
-        `${estadisticas.tipoMasAsegurado} (${estadisticas.maxConteoTipo} polizas)`,
-      ],
-      [
-        'Cliente con poliza mas alta',
+        'Cliente con póliza más alta',
         estadisticas.polizaMasAlta
           ? `${estadisticas.polizaMasAlta.nombre} - ${formatoMoneda(estadisticas.polizaMasAlta.primaAnual)}`
           : 'Sin datos',
       ],
       ['Conductores con 0 accidentes', `${estadisticas.conductoresSinAccidentes}`],
-      ['Clientes riesgo Alto o Critico', `${estadisticas.clientesRiesgoAltoOCritico}`],
-      [
-        'Porcentaje sin accidentes',
-        totalPolizas > 0
-          ? `${((estadisticas.conductoresSinAccidentes / totalPolizas) * 100).toFixed(1)}%`
-          : '0%',
-      ],
-      [
-        'Porcentaje riesgo Alto/Critico',
-        totalPolizas > 0
-          ? `${((estadisticas.clientesRiesgoAltoOCritico / totalPolizas) * 100).toFixed(1)}%`
-          : '0%',
-      ],
+      ['Clientes en riesgo Alto o Crítico', `${estadisticas.clientesRiesgoAltoOCritico}`],
     ],
+    theme: 'grid',
     styles: {
       font: 'helvetica',
-      fontSize: 10.5,
-      cellPadding: 3.2,
+      fontSize: 9.8,
+      cellPadding: 3,
+      lineColor: COLOR.slate200,
+      lineWidth: 0.2,
+      textColor: COLOR.slate900,
     },
     headStyles: {
-      fillColor: [0, 121, 107],
-      textColor: [255, 255, 255],
+      fillColor: COLOR.slate700,
+      textColor: COLOR.white,
       fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [243, 250, 249],
     },
     columnStyles: {
       1: { halign: 'right' },
     },
+    alternateRowStyles: {
+      fillColor: [250, 251, 253],
+    },
   });
 
-  const finalY =
-    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 165;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Resumen ejecutivo:', 14, finalY + 12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    `Actualmente hay ${estadisticas.totalPolizas} polizas activas en memoria.`,
-    14,
-    finalY + 18,
-  );
+  const topPolizas = [...polizas]
+    .sort((a, b) => b.primaAnual - a.primaAnual)
+    .slice(0, 10)
+    .map((poliza, index) => [
+      `${index + 1}`,
+      poliza.nombre,
+      poliza.tipoVehiculo,
+      poliza.clasificacionRiesgo,
+      formatoMoneda(poliza.primaAnual),
+    ]);
 
-  doc.save(`reporte-general-polizas-${new Date().getTime()}.pdf`);
+  autoTable(doc, {
+    startY: getFinalY(docTabla, 185) + 8,
+    head: [['#', 'Cliente', 'Vehículo', 'Riesgo', 'Prima anual']],
+    body: topPolizas.length > 0 ? topPolizas : [['-', 'Sin registros', '-', '-', '-']],
+    theme: 'grid',
+    styles: {
+      font: 'helvetica',
+      fontSize: 9,
+      cellPadding: 2.8,
+      lineColor: COLOR.slate200,
+      lineWidth: 0.2,
+      textColor: COLOR.slate900,
+    },
+    headStyles: {
+      fillColor: COLOR.slate900,
+      textColor: COLOR.white,
+      fontStyle: 'bold',
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      4: { halign: 'right', cellWidth: 34 },
+    },
+    didParseCell: (hookData) => {
+      if (hookData.section === 'body' && hookData.row.index === 0 && topPolizas.length > 0) {
+        hookData.cell.styles.fontStyle = 'bold';
+      }
+    },
+    alternateRowStyles: {
+      fillColor: [250, 251, 253],
+    },
+  });
+
+  agregarPie(doc);
+
+  doc.save(`reporte-general-polizas-${Date.now()}.pdf`);
 };
