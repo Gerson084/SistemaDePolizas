@@ -105,6 +105,7 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
                 value={formData.edad}
                 onChange={handleChange}
                 min="18"
+                max="90"
                 required
               />
             </div>
@@ -118,6 +119,7 @@ const FormularioPoliza = ({ onAgregarPoliza, resetKey }: Props) => {
                 value={formData.anioVehiculo}
                 onChange={handleChange}
                 min="1990"
+                max={new Date().getFullYear() + 1}
                 required
               />
             </div>

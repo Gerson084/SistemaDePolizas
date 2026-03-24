@@ -2,6 +2,7 @@ import type { FormData, Poliza, ClasificacionRiesgo } from './types';
 
 export const validarFormulario = (data: FormData): string[] => {
   const errores: string[] = [];
+  const anioMaximoVehiculo = new Date().getFullYear() + 1;
 
   if (!data.nombre || data.nombre.trim() === '') {
     errores.push('El nombre no puede estar vacío');
@@ -11,12 +12,20 @@ export const validarFormulario = (data: FormData): string[] => {
     errores.push('La edad no puede ser menor de 18 años');
   }
 
+  if (data.edad > 90) {
+    errores.push('La edad no puede ser mayor de 90 años');
+  }
+
   if (data.valorVehiculo <= 0) {
     errores.push('El valor del vehículo debe ser mayor a cero');
   }
 
   if (data.anioVehiculo < 1990) {
     errores.push('El año del vehículo no puede ser menor a 1990');
+  }
+
+  if (data.anioVehiculo > anioMaximoVehiculo) {
+    errores.push(`El año del vehículo no puede ser mayor a ${anioMaximoVehiculo}`);
   }
 
   if (data.accidentes < 0) {
