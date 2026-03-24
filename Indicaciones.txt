@@ -1,0 +1,80 @@
+======================================================================
+SISTEMA DE CÁLCULO DE PÓLIZA DE SEGURO DE AUTO (React Version)
+======================================================================
+Desarrollo con React · Almacenamiento en memoria · Sin base de datos
+
+--- OBJETIVO DEL SISTEMA ---
+Desarrollar una aplicación en React para calcular el costo anual de
+una póliza de seguro, reemplazando la lógica anterior de Java Swing.
+El sistema debe usar componentes funcionales, hooks (useState, useEffect)
+y almacenamiento en memoria (arreglos).
+
+--- 1. CÁLCULO DE PRIMA BASE ---
+Formula: Prima Base = 5% del valor comercial del vehículo.
+Ejemplo: $12,000 * 0.05 = $600.
+
+--- 2. FACTORES DE RIESGO (MODIFICADORES) ---
+
+A. EDAD DEL CONDUCTOR:
+   - Menor de 25 años:    +20%
+   - Entre 25 y 60 años:   0%
+   - Mayor de 60 años:    +15%
+
+B. TIPO DE VEHÍCULO:
+   - Sedán:                0%
+   - SUV:                 +10%
+   - Pickup:               +8%
+   - Deportivo:           +25%
+
+C. HISTORIAL DE ACCIDENTES:
+   - 0 accidentes:        -10% (Descuento)
+   - 1 accidente:         +15%
+   - 2 accidentes:        +30%
+   - 3 o más:             +50%
+
+D. USO DEL VEHÍCULO:
+   - Personal:             0%
+   - Comercial:           +20%
+
+E. ZONA DE CIRCULACIÓN:
+   - Zona normal:          0%
+   - Zona de alto riesgo: +15%
+
+F. PROMOCIÓN ALEATORIA:
+   - Generar número 1 al 5.
+   - Si el número es 3 -> Aplicar -12% de descuento especial.
+
+--- 3. RESULTADOS A MOSTRAR ---
+- Prima Base.
+- Total de recargos ($).
+- Total de descuentos ($).
+- Prima Anual Final.
+- Cuota Mensual (Prima Anual / 12).
+- Clasificación de Riesgo.
+
+--- 4. CLASIFICACIÓN DE RIESGO ---
+- Menor a $500:        Bajo (Verde)
+- $500 - $900:         Medio (Azul)
+- $901 - $1500:        Alto (Amarillo)
+- Mayor a $1500:       Crítico (Rojo)
+
+--- 5. REPORTE GENERAL (ESTADÍSTICAS) ---
+1. Total de pólizas registradas (Contador).
+2. Promedio de primas (Media).
+3. Tipo de vehículo más asegurado (Moda).
+4. Cliente con la póliza más alta (Máximo).
+5. Cantidad de conductores con 0 accidentes.
+6. Cantidad de clientes con riesgo "Alto" o "Crítico".
+
+--- 6. VALIDACIONES OBLIGATORIAS ---
+- Edad: No menor de 18 años.
+- Valor vehículo: Mayor a cero.
+- Año del vehículo: No menor a 1990.
+- Nombre: No puede estar vacío.
+
+--- 7. REQUERIMIENTOS TÉCNICOS (REACT) ---
+- Uso de hooks: useState para los datos y el arreglo de cotizaciones.
+- Componentes funcionales.
+- Interfaz: Bootstrap para tablas y formularios.
+- Almacenamiento: Arreglos en memoria (volátil).
+======================================================================

@@ -1,0 +1,36 @@
+============================================================
+       RÚBRICA DE EVALUACIÓN: SISTEMA DE SEGUROS (REACT)
+============================================================
+
+ID  | CRITERIO DE EVALUACIÓN / FUNCIONALIDAD           | PESO | OK?
+----|--------------------------------------------------|------|-----
+1   | Componente principal App.jsx implementado         |  1   | [ ]
+2   | Formulario de captura con useState (Controlado)  |  1   | [ ]
+3   | Validaciones (Edad, Valor, Año, Nombre)          |  1   | [ ]
+4   | Cálculo Prima Base (5% del valor comercial)      |  1   | [ ]
+5   | Recargos (Edad, Tipo, Accidentes, Uso, Zona)     |  1   | [ ]
+6   | Descuentos (0 accidentes, Promoción aleatoria)   |  1   | [ ]
+7   | Cálculo de Prima Anual Final y Cuota Mensual     |  1   | [ ]
+8   | Clasificación de Riesgo (Bajo a Crítico)         |  1   | [ ]
+9   | Almacenamiento en memoria (useState + Arreglo)   |  1   | [ ]
+10  | Visualización en Tabla (Bootstrap)               |  1   | [ ]
+11  | Reporte General: Total, Promedio, Moda Vehículo  |  1   | [ ]
+12  | Identificación de Cliente con Póliza más Alta    |  1   | [ ]
+13  | Conteo: Conductores con 0 Accidentes             |  1   | [ ]
+14  | Conteo: Clientes con Riesgo Alto o Crítico       |  1   | [ ]
+15  | Lógica Promoción Aleatoria (Num 3 -> -12%)       |  1   | [ ]
+16  | Botón Reinicio: Limpia arreglos y estadísticas   |  1   | [ ]
+17  | Uso de useEffect para actualización automática   |  1   | [ ]
+18  | Diseño Responsivo con Bootstrap                  |  1   | [ ]
+----|--------------------------------------------------|------|-----
+    | TOTAL DE PUNTOS POSIBLES:                        |  18  |
+============================================================
+
+NOTAS ADICIONALES PARA EL DESARROLLO:
+- Asegúrate de que el useEffect detecte cambios en el arreglo 
+  de pólizas para recalcular los reportes automáticamente.
+- El "Tipo de vehículo más asegurado" requiere una lógica 
+  de cálculo de moda sobre el arreglo de objetos.
+- Para el punto 16, el botón debe resetear el estado 
+  inicial de todos los Hooks.
+============================================================
