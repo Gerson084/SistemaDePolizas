@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Poliza } from '../types';
-import { exportarReporteGeneralPDF } from '../pdf/reportesPdf';
+import { exportarReporteGeneralPDF } from '../pdf/reportesPdf.ts';
 
 interface Props {
   polizas: Poliza[];
@@ -104,7 +104,7 @@ const ReporteGeneral = ({ polizas }: Props) => {
   };
 
   const descargarReporteGeneral = () => {
-    exportarReporteGeneralPDF(estadisticas, polizas.length);
+    exportarReporteGeneralPDF(estadisticas, polizas.length, polizas);
   };
 
   return (

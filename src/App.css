@@ -189,6 +189,29 @@
   background: #f8fafc;
 }
 
+.table-filters .form-control,
+.table-filters .form-select {
+  background: #f8fafc;
+}
+
+.table-pagination .page-link {
+  border-color: #cbd5e1;
+  color: #334155;
+  background: #ffffff;
+}
+
+.table-pagination .page-item.active .page-link {
+  background: #334155;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.table-pagination .page-item.disabled .page-link {
+  color: #94a3b8;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
 .badge-neutral {
   background: #e2e8f0;
   color: #334155;
