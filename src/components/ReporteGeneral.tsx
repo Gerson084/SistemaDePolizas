@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import type { Poliza } from '../types';
 import { exportarReporteGeneralPDF } from '../pdf/reportesPdf.ts';
 
@@ -16,20 +16,17 @@ interface Estadisticas {
   clientesRiesgoAltoOCritico: number;
 }
 
-const ReporteGeneral = ({ polizas }: Props) => {
-  const [estadisticas, setEstadisticas] = useState<Estadisticas>({
-    totalPolizas: 0,
-    promedioPremas: 0,
-    tipoMasAsegurado: '',
-    maxConteoTipo: 0,
-    polizaMasAlta: null,
-    conductoresSinAccidentes: 0,
-    clientesRiesgoAltoOCritico: 0,
-  });
+const riesgoColorMap: Record<string, string> = {
+  Bajo: '#16a34a',
+  Medio: '#2563eb',
+  Alto: '#d97706',
+  Crítico: '#dc2626',
+};
 
-  useEffect(() => {
+const ReporteGeneral = ({ polizas }: Props) => {
+  const estadisticas = useMemo<Estadisticas>(() => {
     if (polizas.length === 0) {
-      setEstadisticas({
+      return {
         totalPolizas: 0,
         promedioPremas: 0,
         tipoMasAsegurado: '',
@@ -37,19 +34,18 @@ const ReporteGeneral = ({ polizas }: Props) => {
         polizaMasAlta: null,
         conductoresSinAccidentes: 0,
         clientesRiesgoAltoOCritico: 0,
-      });
-      return;
+      };
     }
 
     const totalPolizas = polizas.length;
-
     const sumaPrimas = polizas.reduce((sum, p) => sum + p.primaAnual, 0);
     const promedioPremas = sumaPrimas / totalPolizas;
 
-    const conteoTipos: { [key: string]: number } = {};
-    polizas.forEach(p => {
+    const conteoTipos: Record<string, number> = {};
+    polizas.forEach((p) => {
       conteoTipos[p.tipoVehiculo] = (conteoTipos[p.tipoVehiculo] || 0) + 1;
     });
+
     let tipoMasAsegurado = '';
     let maxConteoTipo = 0;
     Object.entries(conteoTipos).forEach(([tipo, conteo]) => {
@@ -59,17 +55,16 @@ const ReporteGeneral = ({ polizas }: Props) => {
       }
     });
 
-    const polizaMasAlta = polizas.reduce((max, p) => 
+    const polizaMasAlta = polizas.reduce((max, p) =>
       p.primaAnual > max.primaAnual ? p : max
     , polizas[0]);
 
-    const conductoresSinAccidentes = polizas.filter(p => p.accidentes === 0).length;
-
+    const conductoresSinAccidentes = polizas.filter((p) => p.accidentes === 0).length;
     const clientesRiesgoAltoOCritico = polizas.filter(
-      p => p.clasificacionRiesgo === 'Alto' || p.clasificacionRiesgo === 'Crítico'
+      (p) => p.clasificacionRiesgo === 'Alto' || p.clasificacionRiesgo === 'Crítico',
     ).length;
 
-    setEstadisticas({
+    return {
       totalPolizas,
       promedioPremas,
       tipoMasAsegurado,
@@ -77,7 +72,67 @@ const ReporteGeneral = ({ polizas }: Props) => {
       polizaMasAlta,
       conductoresSinAccidentes,
       clientesRiesgoAltoOCritico,
+    };
+  }, [polizas]);
+
+  const distribucionTipos = useMemo(() => {
+    if (polizas.length === 0) {
+      return [] as Array<{ etiqueta: string; valor: number; porcentaje: number }>;
+    }
+
+    const conteo: Record<string, number> = {};
+    polizas.forEach((p) => {
+      conteo[p.tipoVehiculo] = (conteo[p.tipoVehiculo] || 0) + 1;
     });
+
+    return Object.entries(conteo)
+      .map(([etiqueta, valor]) => ({
+        etiqueta,
+        valor,
+        porcentaje: (valor / polizas.length) * 100,
+      }))
+      .sort((a, b) => b.valor - a.valor);
+  }, [polizas]);
+
+  const graficaRiesgo = useMemo(() => {
+    if (polizas.length === 0) {
+      return { gradiente: '#e2e8f0', leyenda: [] as Array<{ etiqueta: string; valor: number; porcentaje: number; color: string }> };
+    }
+
+    const orden = ['Bajo', 'Medio', 'Alto', 'Crítico'];
+    const conteo: Record<string, number> = {
+      Bajo: 0,
+      Medio: 0,
+      Alto: 0,
+      Crítico: 0,
+    };
+
+    polizas.forEach((p) => {
+      conteo[p.clasificacionRiesgo] = (conteo[p.clasificacionRiesgo] || 0) + 1;
+    });
+
+    let avance = 0;
+    const partes = orden
+      .filter((nivel) => conteo[nivel] > 0)
+      .map((nivel) => {
+        const valor = conteo[nivel];
+        const porcentaje = (valor / polizas.length) * 100;
+        const inicio = avance;
+        avance += porcentaje;
+        const color = riesgoColorMap[nivel] || '#64748b';
+        return {
+          etiqueta: nivel,
+          valor,
+          porcentaje,
+          color,
+          segmento: `${color} ${inicio.toFixed(2)}% ${avance.toFixed(2)}%`,
+        };
+      });
+
+    return {
+      gradiente: partes.map((parte) => parte.segmento).join(', '),
+      leyenda: partes,
+    };
   }, [polizas]);
 
   if (polizas.length === 0) {
@@ -188,6 +243,69 @@ const ReporteGeneral = ({ polizas }: Props) => {
                 <small className="text-muted">
                   {((estadisticas.clientesRiesgoAltoOCritico / estadisticas.totalPolizas) * 100).toFixed(1)}% del total
                 </small>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12">
+            <div className="row g-3 mt-1">
+              <div className="col-12 col-lg-7">
+                <div className="card h-100 stat-card chart-card">
+                  <div className="card-body">
+                    <h5 className="card-title">Distribución por Tipo de Vehículo</h5>
+                    <div className="chart-bars mt-3">
+                      {distribucionTipos.map((item) => (
+                        <div key={item.etiqueta} className="chart-bar-row">
+                          <div className="d-flex justify-content-between chart-bar-label">
+                            <span>{item.etiqueta}</span>
+                            <span>{item.valor} pólizas</span>
+                          </div>
+                          <div className="chart-track">
+                            <div
+                              className="chart-fill"
+                              style={{ width: `${item.porcentaje.toFixed(1)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-12 col-lg-5">
+                <div className="card h-100 stat-card chart-card">
+                  <div className="card-body">
+                    <h5 className="card-title">Composición de Riesgo</h5>
+                    <div className="risk-donut-wrapper mt-3">
+                      <div
+                        className="risk-donut"
+                        style={{
+                          background: `conic-gradient(${graficaRiesgo.gradiente})`,
+                        }}
+                        aria-label="Distribución de niveles de riesgo"
+                      >
+                        <div className="risk-donut-center">
+                          <strong>{polizas.length}</strong>
+                          <small>pólizas</small>
+                        </div>
+                      </div>
+
+                      <ul className="risk-legend">
+                        {graficaRiesgo.leyenda.map((item) => (
+                          <li key={item.etiqueta}>
+                            <span
+                              className="risk-dot"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span>{item.etiqueta}</span>
+                            <span>{item.porcentaje.toFixed(1)}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
